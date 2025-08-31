@@ -1,5 +1,17 @@
 # Ticket Buying System
 
+![Java](https://img.shields.io/badge/Java-17-blue)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2.0-green)
+![Maven](https://img.shields.io/badge/Maven-3.9.0-blue)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)
+![Kafka](https://img.shields.io/badge/Kafka-3.6.0-orange)
+![Prometheus](https://img.shields.io/badge/Prometheus-monitoring-lightgrey)
+![Grafana](https://img.shields.io/badge/Grafana-dashboard-orange)
+![Keycloak](https://img.shields.io/badge/Keycloak-authentication-red)
+![License](https://img.shields.io/badge/License-MIT-blue)
+![Build](https://img.shields.io/badge/build-passing-brightgreen)
+![API Docs](https://img.shields.io/badge/API-OpenAPI-blueviolet)
+
 Microservices-based ticket booking application with event inventory management, booking processing, and order management.
 
 ## Features
