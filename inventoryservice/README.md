@@ -2,7 +2,7 @@
 
 Spring Boot microservice for event inventory management.
 
-![Inventory Service Table](../public/Inventory Service Table.png)
+![Inventory Service Table](../public/Inventory%20Service%20Table.png)
 
 ## Features
 
