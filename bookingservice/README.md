@@ -2,7 +2,7 @@
 
 Spring Boot microservice for ticket booking and reservation management.
 
-![Booking Service Table](../public/Booking%20Service%20Table.pngg)
+![Booking Service Table](../public/Booking%20Service%20Table.png)
 
 ## Features
 
