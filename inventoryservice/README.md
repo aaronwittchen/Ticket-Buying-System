@@ -2,6 +2,8 @@
 
 Spring Boot microservice for event inventory management.
 
+![Inventory Service Table](../public/Inventory Service Table.png)
+
 ## Features
 
 - Event inventory management
@@ -24,10 +26,12 @@ Spring Boot microservice for event inventory management.
 ## Quick Start
 
 1. Set environment variables:
+
    - `MYSQL_USER`
    - `MYSQL_PASSWORD`
 
 2. Run the service:
+
    ```bash
    mvn spring-boot:run
    ```

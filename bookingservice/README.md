@@ -2,6 +2,8 @@
 
 Spring Boot microservice for ticket booking and reservation management.
 
+![Booking Service Table](../public/Booking Service Table.pngg)
+
 ## Features
 
 - Ticket booking creation
@@ -20,12 +22,14 @@ Spring Boot microservice for ticket booking and reservation management.
 ## Quick Start
 
 1. Set environment variables:
+
    - `MYSQL_USER`
    - `MYSQL_PASSWORD`
 
 2. Ensure Kafka is running on localhost:9092
 
 3. Run the service:
+
    ```bash
    mvn spring-boot:run
    ```

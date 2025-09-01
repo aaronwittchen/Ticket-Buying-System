@@ -14,6 +14,8 @@
 
 Microservices-based ticket booking application with event inventory management, booking processing, and order management.
 
+![Ticket Buying System Diagram](public/Ticket Buying System Diagram.png)
+
 ## Features
 
 - Event inventory management
