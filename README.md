@@ -57,8 +57,6 @@ Microservices-based ticket booking application with event inventory management, 
    cd apigateway && mvn spring-boot:run
    ```
 
-```
-
 ## Environment Variables
 
 Set the following environment variables:
@@ -121,4 +119,3 @@ Prometheus can scrape metrics from all services and Grafana can visualize them.
 * Centralized via API Gateway: `http://localhost:8090/swagger-ui.html`
 * Inventory Service: `http://localhost:8080/swagger-ui.html`
 * Booking Service: `http://localhost:8081/swagger-ui.html`
-```
