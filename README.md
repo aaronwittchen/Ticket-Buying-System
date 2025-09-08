@@ -67,7 +67,7 @@ A **microservices-based ticket booking application** with event inventory manage
    cd apigateway && mvn spring-boot:run
    ```
 
----
+````
 
 ## Environment Variables
 
@@ -76,7 +76,7 @@ Set the following variables:
 ```bash
 MYSQL_USER=<your_mysql_username>
 MYSQL_PASSWORD=<your_mysql_password>
-```
+````
 
 ---
 
@@ -126,37 +126,6 @@ Prometheus scrapes metrics from all services and Grafana provides dashboards.
 - Inventory Service: `http://localhost:8080/swagger-ui.html`
 - Booking Service: `http://localhost:8081/swagger-ui.html`
 
----
-
-## Backup & Restore
-
-- Scripts included: `manual_backup.sh`, `restore.sh`, `backup_status.sh`
-- Works for MySQL and Keycloak databases
-- `.env` contains database credentials for script connectivity
-- Tested backup creation & status checks
-
----
-
-## Testing
-
-Run all tests:
-
-```bash
-bash run_all_tests.sh
-# OR
-chmod +x run_all_tests.sh
-./run_all_tests.sh
 ```
 
-Or run tests per service:
-
-```bash
-cd <service-directory> && mvn test
 ```
-
----
-
-## Notes
-
-- Recommended: WSL Ubuntu 22.04 on Windows for a proper Linux environment
-- Docker permissions fixed via user group setup in WSL
