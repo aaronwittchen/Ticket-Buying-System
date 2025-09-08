@@ -12,44 +12,54 @@
 ![Build](https://img.shields.io/badge/build-passing-brightgreen)
 ![API Docs](https://img.shields.io/badge/API-OpenAPI-blueviolet)
 
-Microservices-based ticket booking application with event inventory management, booking processing, and order management.
+A **microservices-based ticket booking application** with event inventory management, booking processing, and order management.
 
 ![Ticket Buying System Diagram](public/Ticket%20Buying%20System%20Diagram.png)
 
+---
+
 ## Features
 
-- Event inventory management
-- Venue capacity tracking
+- Event inventory and venue capacity management
 - Real-time inventory updates
 - Ticket booking creation
-- Kafka event publishing and consumption
+- Kafka-based event publishing and consumption
 - Order creation and persistence
-- Inventory service integration
-- MySQL database storage and integration
-- Flyway database migrations
-- Event-driven architecture
-- Service routing and load balancing
-- OAuth2 JWT authentication
-- Circuit breaker with Resilience4j
-- OpenAPI documentation (individual and aggregated)
-- Global exception handling
-- Input validation with Bean Validation
+- Integration with MySQL and Flyway migrations
+- Event-driven architecture with service routing and load balancing
+- OAuth2 JWT authentication via Keycloak
+- Circuit breaker using Resilience4j
+- OpenAPI documentation (individual & aggregated)
+- Global exception handling & input validation
 - Health monitoring with Spring Boot Actuator
-- Metrics and monitoring with Spring Boot Actuator and Prometheus
+- Metrics collection with Prometheus & visualization via Grafana
+
+---
 
 ## Architecture
 
-- **Inventory Service:** Port 8080
-- **Booking Service:** Port 8081
-- **Order Service:** Port 8082
-- **API Gateway:** Port 8090
+| Service           | Port |
+| ----------------- | ---- |
+| Inventory Service | 8080 |
+| Booking Service   | 8081 |
+| Order Service     | 8082 |
+| API Gateway       | 8090 |
+
+---
 
 ## Quick Start
 
-1. Start MySQL database
-2. Start Kafka broker
-3. Start Keycloak (for authentication)
-4. Run each service:
+1. **Start MySQL**
+   Ensure a database named `ticketing` exists.
+
+2. **Run Docker containers**
+
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **Start services**
+
    ```bash
    cd inventoryservice && mvn spring-boot:run
    cd bookingservice && mvn spring-boot:run
@@ -57,68 +67,96 @@ Microservices-based ticket booking application with event inventory management, 
    cd apigateway && mvn spring-boot:run
    ```
 
-```
+---
 
 ## Environment Variables
 
-Set the following environment variables:
+Set the following variables:
 
-* `MYSQL_USER`: MySQL username
-* `MYSQL_PASSWORD`: MySQL password
+```bash
+MYSQL_USER=<your_mysql_username>
+MYSQL_PASSWORD=<your_mysql_password>
+```
 
-## API Endpoints
+---
 
-* **Inventory Service**
+## 📡 API Endpoints
 
-  * `GET /api/v1/inventory/events` - Get all events
-  * `GET /api/v1/inventory/venue/{venueId}` - Get venue information
-  * `GET /api/v1/inventory/event/{eventId}` - Get event inventory
-  * `PUT /api/v1/inventory/event/{eventId}/capacity/{capacity}` - Update event capacity
+### Inventory Service
 
-* **Booking Service**
+- `GET /api/v1/inventory/events` – List all events
+- `GET /api/v1/inventory/venue/{venueId}` – Get venue info
+- `GET /api/v1/inventory/event/{eventId}` – Get event inventory
+- `PUT /api/v1/inventory/event/{eventId}/capacity/{capacity}` – Update event capacity
 
-  * `POST /api/v1/booking` - Create a new booking
+### Booking Service
 
-* **Order Service**
+- `POST /api/v1/booking` – Create a new booking
 
-  * Processes orders via Kafka events from Booking Service (no REST endpoints)
+### Order Service
 
-* **API Gateway**
+- Processes orders via Kafka events from Booking Service (no REST endpoints)
 
-  * Routes booking requests to Booking Service
-  * Routes inventory requests to Inventory Service
-  * Provides aggregated API documentation
-  * Health check endpoints via Actuator
+### API Gateway
 
-## Metrics and Monitoring
+- Routes booking & inventory requests
+- Aggregated API documentation
+- Health checks via Actuator
 
-All services use Spring Boot Actuator:
+---
 
-* **Inventory Service:**
+## Metrics & Monitoring
 
-  * Health: `http://localhost:8080/actuator/health`
-  * Metrics: `http://localhost:8080/actuator/metrics`
+All services use **Spring Boot Actuator**:
 
-* **Booking Service:**
+| Service           | Health Endpoint                         | Metrics Endpoint                         |
+| ----------------- | --------------------------------------- | ---------------------------------------- |
+| Inventory Service | `http://localhost:8080/actuator/health` | `http://localhost:8080/actuator/metrics` |
+| Booking Service   | `http://localhost:8081/actuator/health` | `http://localhost:8081/actuator/metrics` |
+| Order Service     | `http://localhost:8082/actuator/health` | `http://localhost:8082/actuator/metrics` |
+| API Gateway       | `http://localhost:8090/actuator/health` | `http://localhost:8090/actuator/metrics` |
 
-  * Health: `http://localhost:8081/actuator/health`
-  * Metrics: `http://localhost:8081/actuator/metrics`
+Prometheus scrapes metrics from all services and Grafana provides dashboards.
 
-* **Order Service:**
-
-  * Health: `http://localhost:8082/actuator/health`
-  * Metrics: `http://localhost:8082/actuator/metrics`
-
-* **API Gateway:**
-
-  * Health: `http://localhost:8090/actuator/health`
-  * Metrics: `http://localhost:8090/actuator/metrics`
-
-Prometheus can scrape metrics from all services and Grafana can visualize them.
+---
 
 ## API Documentation
 
-* Centralized via API Gateway: `http://localhost:8090/swagger-ui.html`
-* Inventory Service: `http://localhost:8080/swagger-ui.html`
-* Booking Service: `http://localhost:8081/swagger-ui.html`
+- Centralized via API Gateway: `http://localhost:8090/swagger-ui.html`
+- Inventory Service: `http://localhost:8080/swagger-ui.html`
+- Booking Service: `http://localhost:8081/swagger-ui.html`
+
+---
+
+## Backup & Restore
+
+- Scripts included: `manual_backup.sh`, `restore.sh`, `backup_status.sh`
+- Works for MySQL and Keycloak databases
+- `.env` contains database credentials for script connectivity
+- Tested backup creation & status checks
+
+---
+
+## Testing
+
+Run all tests:
+
+```bash
+bash run_all_tests.sh
+# OR
+chmod +x run_all_tests.sh
+./run_all_tests.sh
 ```
+
+Or run tests per service:
+
+```bash
+cd <service-directory> && mvn test
+```
+
+---
+
+## Notes
+
+- Recommended: WSL Ubuntu 22.04 on Windows for a proper Linux environment
+- Docker permissions fixed via user group setup in WSL

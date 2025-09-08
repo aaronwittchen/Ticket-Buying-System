@@ -126,3 +126,13 @@ coverage/
 # MySQL socket & data files
 inventoryservice/volume-data/mysql_keycloak_data/*
 !inventoryservice/volume-data/mysql_keycloak_data/.gitkeep
+
+# Docker and volume data
+volume-data/
+keycloak-data/
+ticketing-db-data/
+keycloak-db-data/
+
+# Edit
+stuff.md
+backups/

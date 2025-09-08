@@ -1,0 +1,254 @@
+services:
+  mysql:
+    image: mysql:8.3.0
+    container_name: ticketing-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ticketing
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - '3307:3306'
+    volumes:
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ticketing-db-data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      timeout: 20s
+      retries: 10
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - '2181:2181'
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 3000
+
+  kafka-broker:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-broker
+    ports:
+      - '9092:9092'
+      - '29092:29092'
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - '8092:8080'
+    depends_on:
+      - kafka-broker
+    environment:
+      KAFKA_CLUSTERS_NAME: local
+      KAFKA_CLUSTERS_BOOTSTRAPSERVERS: kafka-broker:29092
+      DYNAMIC_CONFIG_ENABLED: 'true'
+
+  kafka-schema-registry:
+    image: confluentinc/cp-schema-registry:7.5.0
+    hostname: kafka-schema-registry
+    container_name: kafka-schema-registry
+    depends_on:
+      - kafka-broker
+    ports:
+      - '8083:8081'
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: kafka-schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka-broker:29092'
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+
+  keycloak-db:
+    container_name: keycloak-mysql
+    image: mysql:8.3.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: keycloak
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - ./volume-data/mysql_keycloak_data:/var/lib/mysql
+    ports:
+      - '3308:3306'
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      timeout: 20s
+      retries: 10
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.1
+    command: ['start-dev', '--import-realm']
+    environment:
+      DB_VENDOR: MYSQL
+      DB_ADDR: keycloak-db
+      DB_DATABASE: keycloak
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - '8091:8080'
+    volumes:
+      - ./docker/keycloak/realms/:/opt/keycloak/data/import/
+    depends_on:
+      - keycloak-db
+
+  apigateway:
+    build: ./apigateway
+    container_name: apigateway
+    ports:
+      - '8086:8080'
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      - mysql
+      - kafka-broker
+
+  inventoryservice:
+    build: ./inventoryservice
+    container_name: inventoryservice
+    ports:
+      - '8085:8080'
+    depends_on:
+      - mysql
+      - kafka-broker
+
+  orderservice:
+    build: ./orderservice
+    container_name: orderservice
+    ports:
+      - '8087:8080'
+    depends_on:
+      - mysql
+      - kafka-broker
+
+  bookingservice:
+    build: ./bookingservice
+    container_name: bookingservice
+    ports:
+      - '8084:8080'
+    depends_on:
+      - mysql
+      - kafka-broker
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - '9090:9090'
+    depends_on:
+      - apigateway
+      - inventoryservice
+      - orderservice
+      - bookingservice
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - '4000:3000'
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+  # Automated Backup Services
+  mysql-backup:
+    image: databack/mysql-backup:latest
+    container_name: mysql-backup
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_SERVER: ticketing-mysql
+      DB_PORT: 3306
+      DB_USER: ${MYSQL_USER}
+      DB_PASS: ${MYSQL_PASSWORD}
+      DB_NAMES: ticketing
+      DB_DUMP_FREQ: 1440 # Daily backups (in minutes)
+      DB_DUMP_BEGIN: +0 # Start immediately
+      DB_CLEANUP_TIME: 10080 # Keep backups for 7 days (in minutes)
+      DB_DUMP_DEBUG: 'true'
+      COMPRESSION: gzip
+      DB_DUMP_SAFECHARS: 'true'
+    volumes:
+      - ./backups/mysql:/db
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+  keycloak-backup:
+    image: databack/mysql-backup:latest
+    container_name: keycloak-backup
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    environment:
+      DB_SERVER: keycloak-mysql
+      DB_PORT: 3306
+      DB_USER: ${MYSQL_USER}
+      DB_PASS: ${MYSQL_PASSWORD}
+      DB_NAMES: keycloak
+      DB_DUMP_FREQ: 1440 # Daily backups
+      DB_DUMP_BEGIN: +30 # Start 30 minutes after mysql-backup
+      DB_CLEANUP_TIME: 10080 # Keep backups for 7 days
+      DB_DUMP_DEBUG: 'true'
+      COMPRESSION: gzip
+      DB_DUMP_SAFECHARS: 'true'
+    volumes:
+      - ./backups/keycloak:/db
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+  backup-monitor:
+    image: alpine:latest
+    container_name: backup-monitor
+    depends_on:
+      - mysql-backup
+      - keycloak-backup
+    volumes:
+      - ./backups:/backups:ro
+      - ./scripts:/scripts:ro
+    command: >
+      sh -c "
+        apk add --no-cache curl jq &&
+        while true; do
+          echo 'Checking backup status...' &&
+          /scripts/check_backups.sh &&
+          sleep 3600
+        done
+      "
+    restart: unless-stopped
+
+volumes:
+  ticketing-db-data:
+  keycloak-db-data:
+  grafana-data:
