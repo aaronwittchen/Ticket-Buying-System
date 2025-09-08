@@ -125,7 +125,3 @@ Prometheus scrapes metrics from all services and Grafana provides dashboards.
 - Centralized via API Gateway: `http://localhost:8090/swagger-ui.html`
 - Inventory Service: `http://localhost:8080/swagger-ui.html`
 - Booking Service: `http://localhost:8081/swagger-ui.html`
-
-```
-
-```
